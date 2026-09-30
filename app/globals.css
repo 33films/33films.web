@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+@theme {
+  --color-black: #050505;
+  --color-off-white: #f2f0ea;
+  --color-gray: #a6a6a0;
+  --color-dark: #1a1a1a;
+  --font-sans: var(--font-geist), "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #050505;
+  color: #f2f0ea;
+  font-family: var(--font-geist), var(--font-sans), "Inter", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  cursor: auto;
+}
+
+::selection {
+  background-color: var(--color-off-white);
+  color: var(--color-black);
+}
+
+.editorial-line {
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.2;
+}
+
+.text-display {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: clamp(3.5rem, 12vw, 11rem);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+}
+
+.text-headline {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: clamp(2.5rem, 6vw, 5.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+}
+
+.text-subhead {
+  font-size: clamp(1.25rem, 2.5vw, 2rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.text-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.text-body {
+  font-size: clamp(0.9375rem, 1.2vw, 1.125rem);
+  line-height: 1.6;
+  color: var(--color-gray);
+}
+
+.grid-editorial {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 767px) {
+  .grid-editorial {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.image-mask {
+  overflow: hidden;
+}
+
+.image-mask img,
+.image-mask video {
+  transition:
+    transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    filter 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.group:hover .image-mask img,
+.group:hover .image-mask video {
+  transform: scale(1.06);
+}
+
+#work .image-mask img,
+#work .image-mask video {
+  filter: grayscale(100%);
+}
+
+#work .group:hover .image-mask img,
+#work .group:hover .image-mask video {
+  filter: grayscale(0%);
+}
+
+.work-preview-iframe {
+  pointer-events: none;
+}
+
+.work-preview-host,
+.work-preview-host iframe {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  border: 0;
+  pointer-events: none;
+  object-fit: cover;
+}
+
+.vimeo-player-host iframe {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+  pointer-events: none;
+}
+
+.vimeo-player:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+}
+
+@keyframes player-indeterminate {
+  0% {
+    left: -35%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.player-indeterminate {
+  animation: player-indeterminate 1.3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-indeterminate {
+    animation: none;
+    left: 33%;
+  }
+}
+
+iframe.work-preview-host {
+  transform: scale(1.12);
+  transform-origin: center center;
+}
+
+
