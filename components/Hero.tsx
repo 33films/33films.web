@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import { vimeoBackgroundSrc } from "@/lib/portfolio/vimeo";
+import type { HeroVideo } from "@/lib/home/types";
 
-const HERO_VIDEO = "/videos/33films-hero.mp4";
 const LOGO_SRC = "/images/Logowhite.svg";
 
-export default function Hero() {
+export default function Hero({ video }: { video: HeroVideo | null }) {
   const { dictionary } = useI18n();
   const t = dictionary.hero;
 
@@ -18,16 +20,21 @@ export default function Hero() {
         animate={{ scale: 1 }}
         transition={{ duration: 1.8, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          className="absolute inset-0 h-full w-full object-cover"
-        >
-          <source src={HERO_VIDEO} type="video/mp4" />
-        </video>
+        {!video ? null : video.kind === "vimeo" ? (
+          <HeroVimeo vimeoId={video.vimeoId} />
+        ) : (
+          <video
+            key={video.src}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="absolute inset-0 h-full w-full object-cover"
+          >
+            <source src={video.src} />
+          </video>
+        )}
         <div className="absolute inset-0 bg-black/40" />
       </motion.div>
 
@@ -60,5 +67,25 @@ export default function Hero() {
         <p className="text-label text-off-white/55">{t.scroll}</p>
       </div>
     </section>
+  );
+}
+
+function HeroVimeo({ vimeoId }: { vimeoId: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const src = vimeoBackgroundSrc(vimeoId);
+  if (!src) return null;
+
+  return (
+    <iframe
+      src={src}
+      title="33FILMS"
+      tabIndex={-1}
+      aria-hidden="true"
+      allow="autoplay; fullscreen; picture-in-picture"
+      onLoad={() => window.setTimeout(() => setLoaded(true), 600)}
+      className={`pointer-events-none absolute top-1/2 left-1/2 h-[max(100vh,56.25vw)] w-[max(100vw,177.78vh)] -translate-x-1/2 -translate-y-1/2 border-0 transition-opacity duration-1000 ${
+        loaded ? "opacity-100" : "opacity-0"
+      }`}
+    />
   );
 }

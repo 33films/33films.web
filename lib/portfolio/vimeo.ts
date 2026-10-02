@@ -163,6 +163,18 @@ export function vimeoSdkOptions(
   };
 }
 
+export function vimeoBackgroundSrc(stored: string): string | null {
+  return buildVimeoSrc(stored, {
+    background: "1",
+    autoplay: "1",
+    loop: "1",
+    muted: "1",
+    autopause: "0",
+    dnt: "1",
+    playsinline: "1",
+  });
+}
+
 export function vimeoPreviewSrc(stored: string): string | null {
   return buildVimeoSrc(stored, {
     muted: "1",

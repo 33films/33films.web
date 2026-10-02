@@ -28,6 +28,7 @@ export default function Navbar({ aboutEnabled = true }: { aboutEnabled?: boolean
     profile?.role === "admin"
       ? [
           { href: "/admin", label: t.admin },
+          { href: "/admin/home", label: dictionary.homeAdmin.nav },
           { href: "/admin/works", label: dictionary.portfolioAdmin.nav },
           { href: "/admin/about", label: dictionary.aboutAdmin.nav },
           { href: "/admin/users", label: t.users },

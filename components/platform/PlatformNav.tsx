@@ -26,6 +26,7 @@ export default function PlatformNav({
 
   const adminOnlyLinks = [
     { href: "/admin", label: t.admin },
+    { href: "/admin/home", label: dictionary.homeAdmin.nav },
     { href: "/admin/works", label: dictionary.portfolioAdmin.nav },
     { href: "/admin/about", label: dictionary.aboutAdmin.nav },
   ];
@@ -35,6 +36,7 @@ export default function PlatformNav({
     { href: "/admin/users", label: dictionary.admin.users },
     { href: "/admin/projects", label: dictionary.admin.projects },
     { href: "/admin/files", label: dictionary.admin.files },
+    { href: "/admin/home", label: dictionary.homeAdmin.nav },
     { href: "/admin/works", label: dictionary.portfolioAdmin.nav },
     { href: "/admin/about", label: dictionary.aboutAdmin.nav },
     { href: "/admin/settings", label: dictionary.admin.settings },
