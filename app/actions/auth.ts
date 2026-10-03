@@ -3,6 +3,19 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 
+// TEMP: auth diagnostics for production. Logs only code/status/message; remove once resolved.
+function logAuthError(
+  step: string,
+  error: { code?: string; status?: number; message?: string } | null
+) {
+  console.error("[auth-debug]", {
+    step,
+    code: error?.code ?? null,
+    status: error?.status ?? null,
+    message: error?.message ?? null,
+  });
+}
+
 export type AuthActionState = {
   error?: "setup" | "auth" | "inactive" | "confirm" | "mismatch";
   ok?: boolean;
@@ -20,12 +33,19 @@ export async function signInAction(
   const next = String(formData.get("next") ?? "");
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: "auth" };
+  if (error) {
+    logAuthError("signIn.signInWithPassword", error);
+    return { error: "auth" };
+  }
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser();
-  if (!user) return { error: "auth" };
+  if (!user) {
+    logAuthError("signIn.getUser", userError);
+    return { error: "auth" };
+  }
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -66,7 +86,10 @@ export async function signUpAction(
     password,
     options: { data: { full_name: fullName } },
   });
-  if (error) return { error: "auth" };
+  if (error) {
+    logAuthError("signUp", error);
+    return { error: "auth" };
+  }
   if (!data.session) return { error: "confirm" };
   redirect("/dashboard");
 }
