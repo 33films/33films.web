@@ -1,4 +1,4 @@
-export const CONTACT_EMAIL = "produccion.33fims@gmail.com";
+export const CONTACT_EMAIL = "produccion.33films@gmail.com";
 
 export const CONTACT_PROJECT_TYPES = [
   "commercial",

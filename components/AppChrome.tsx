@@ -8,6 +8,7 @@ const PRIVATE_PREFIXES = [
   "/login",
   "/register",
   "/forgot-password",
+  "/reset-password",
   "/dashboard",
   "/admin",
 ];
@@ -21,6 +22,15 @@ export default function AppChrome({
 }) {
   const pathname = usePathname();
   const isPrivate = PRIVATE_PREFIXES.some((p) => pathname.startsWith(p));
+
+  useEffect(() => {
+    if (pathname === "/reset-password") return;
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    if (hash.get("type") !== "recovery" || !hash.get("access_token")) return;
+    window.location.replace(
+      `/reset-password${window.location.search}${window.location.hash}`
+    );
+  }, [pathname]);
 
   useEffect(() => {
     if (!isPrivate) return;

@@ -164,6 +164,49 @@ export async function adminUpdateProject(formData: FormData) {
   revalidatePath(`/admin/projects/${id}`);
 }
 
+export async function adminDeleteProject(formData: FormData) {
+  const { profile } = await requireAdmin();
+  const admin = createAdminClient();
+  const supabase = admin ?? (await createServerSupabase());
+  if (!supabase) return;
+
+  const id = String(formData.get("id") ?? "");
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id, name")
+    .eq("id", id)
+    .maybeSingle();
+  if (!project) return;
+
+  const { data: files } = await supabase
+    .from("files")
+    .select("storage_path")
+    .eq("project_id", id);
+
+  for (const file of files ?? []) {
+    if (!file.storage_path) continue;
+    try {
+      await storage.remove(file.storage_path);
+    } catch {
+      // Keep deleting; a leftover object must not block removing the project.
+    }
+  }
+
+  // project_users, project_folders and files rows cascade from projects.
+  const { error } = await supabase.from("projects").delete().eq("id", id);
+  if (error) {
+    console.error("projects delete", error);
+    return;
+  }
+
+  await logActivity(profile.id, "project_deleted", "project", id, { name: project.name });
+  revalidatePath("/admin");
+  revalidatePath("/admin/projects");
+  revalidatePath("/admin/files");
+  revalidatePath("/dashboard");
+  redirect("/admin/projects");
+}
+
 export async function adminAssignUsers(formData: FormData) {
   await requireAdmin();
   const admin = createAdminClient();

@@ -1,4 +1,4 @@
-const DEFAULT_INSTAGRAM = "https://www.instagram.com/33films/";
+const DEFAULT_INSTAGRAM = "https://www.instagram.com/by33films/";
 const DEFAULT_WHATSAPP_MESSAGE = "Hola 33 Films, quiero hablar de un proyecto.";
 
 function digitsOnly(value: string) {

@@ -17,9 +17,22 @@ function logAuthError(
 }
 
 export type AuthActionState = {
-  error?: "setup" | "auth" | "inactive" | "confirm" | "mismatch";
+  error?: "setup" | "auth" | "inactive" | "confirm" | "mismatch" | "email" | "rate";
   ok?: boolean;
 } | null;
+
+const PRODUCTION_SITE_URL = "https://www.by33films.com";
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Exact path, with no query string. Supabase matches this against Redirect URLs
+// and appends ?code= itself. The page language comes from the locale cookie.
+function passwordResetRedirect() {
+  const origin =
+    process.env.NODE_ENV === "production"
+      ? PRODUCTION_SITE_URL
+      : (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  return `${origin}/reset-password`;
+}
 
 export async function signInAction(
   _prev: AuthActionState,
@@ -104,12 +117,22 @@ export async function resetPasswordAction(
   _prev: AuthActionState,
   formData: FormData
 ): Promise<AuthActionState> {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!EMAIL_PATTERN.test(email)) return { error: "email" };
+
   const supabase = await createServerSupabase();
   if (!supabase) return { error: "setup" };
-  const email = String(formData.get("email") ?? "");
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/login`,
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: passwordResetRedirect(),
   });
+
+  if (error) {
+    logAuthError("resetPasswordForEmail", error);
+    if (error.status === 429) return { error: "rate" };
+    return { error: "auth" };
+  }
+
+  // Supabase answers the same for unknown emails, so this never reveals whether an account exists.
   return { ok: true };
 }

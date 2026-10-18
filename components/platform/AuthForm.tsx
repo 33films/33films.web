@@ -33,9 +33,14 @@ export default function AuthForm({
           ? t.confirmEmail
           : state?.error === "mismatch"
             ? t.mismatch
-            : state?.error
-              ? t.error
-              : null;
+            : state?.error === "email"
+              ? t.invalidEmail
+              : state?.error === "rate"
+                ? t.rateLimited
+                : state?.error
+                  ? t.error
+                  : null;
+  const resetRequested = mode === "forgot" && Boolean(state?.ok);
 
   return (
     <div className="flex min-h-screen flex-col bg-black px-5 py-10 md:px-10">
@@ -55,7 +60,21 @@ export default function AuthForm({
               ? t.register
               : t.forgot}
         </h1>
+        {mode === "forgot" && !resetRequested ? (
+          <p className="text-body mt-6 text-gray">{t.forgotHint}</p>
+        ) : null}
 
+        {resetRequested ? (
+          <div className="mt-12 space-y-8" role="status">
+            <p className="text-body text-off-white/80">{t.resetSent}</p>
+            <Link
+              href="/login"
+              className="text-label block w-full border border-off-white py-4 text-center text-off-white transition-colors hover:bg-off-white hover:text-black"
+            >
+              {t.goToLogin}
+            </Link>
+          </div>
+        ) : (
         <form action={formAction} className="mt-12 space-y-8">
           {nextPath ? <input type="hidden" name="next" value={nextPath} /> : null}
 
@@ -64,7 +83,17 @@ export default function AuthForm({
           )}
           <Field name="email" label={t.email} type="email" />
           {mode !== "forgot" && (
-            <Field name="password" label={t.password} type="password" />
+            <div>
+              <Field name="password" label={t.password} type="password" />
+              {mode === "login" && (
+                <Link
+                  href="/forgot-password"
+                  className="text-label mt-4 inline-block text-off-white underline decoration-off-white/40 underline-offset-4 transition-colors hover:decoration-off-white"
+                >
+                  {t.forgotLink}
+                </Link>
+              )}
+            </div>
           )}
           {mode === "register" && (
             <Field
@@ -74,28 +103,32 @@ export default function AuthForm({
             />
           )}
 
-          {error && <p className="text-body text-off-white/70">{error}</p>}
-          {state?.ok && <p className="text-body text-off-white/70">{t.resetSent}</p>}
+          {error && (
+            <p className="text-body text-off-white/70" role="alert">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
             disabled={pending}
+            aria-busy={pending}
             className="text-label w-full border border-off-white py-4 text-off-white transition-colors hover:bg-off-white hover:text-black disabled:opacity-50"
           >
             {mode === "login"
               ? t.submitLogin
               : mode === "register"
                 ? t.submitRegister
-                : t.submitForgot}
+                : pending
+                  ? t.sending
+                  : t.submitForgot}
           </button>
         </form>
+        )}
 
         <div className="mt-10 space-y-3">
           {mode === "login" && (
             <>
-              <Link href="/forgot-password" className="text-label block text-gray">
-                {t.forgotLink}
-              </Link>
               <p className="text-label text-gray">
                 {t.noAccount}{" "}
                 <Link href="/register" className="text-off-white">
@@ -104,7 +137,7 @@ export default function AuthForm({
               </p>
             </>
           )}
-          {mode !== "login" && (
+          {mode !== "login" && !resetRequested && (
             <p className="text-label text-gray">
               {t.haveAccount}{" "}
               <Link href="/login" className="text-off-white">

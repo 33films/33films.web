@@ -1,10 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
+// /reset-password is intentionally absent: after the recovery link is exchanged
+// the visitor already has a session, and this is the screen where they set the new password.
 const AUTH_ROUTES = ["/login", "/register", "/forgot-password"];
 
 export async function middleware(request: NextRequest) {
   const { response, user, role, hasProfile } = await updateSession(request);
+  if (response.status >= 300 && response.status < 400) return response;
+
   const { pathname } = request.nextUrl;
 
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));

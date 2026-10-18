@@ -1,0 +1,1 @@
+{{ $l := "es" }}{{ with .Data }}{{ with .locale }}{{ $l = . }}{{ end }}{{ end }}{{ if eq $l "pt" }}33 FILMS — Confirme sua conta{{ else if eq $l "en" }}33 FILMS — Confirm your account{{ else }}33 FILMS — Confirmá tu cuenta{{ end }}

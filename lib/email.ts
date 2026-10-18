@@ -13,7 +13,7 @@ function getResend() {
 
 export function getEmailConfig() {
   return {
-    to: process.env.CONTACT_EMAIL || process.env.CONTACT_TO_EMAIL || "produccion.33fims@gmail.com",
+    to: process.env.CONTACT_EMAIL || process.env.CONTACT_TO_EMAIL || "produccion.33films@gmail.com",
     from:
       process.env.EMAIL_FROM ||
       process.env.CONTACT_FROM_EMAIL ||

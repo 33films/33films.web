@@ -11,6 +11,7 @@ import Link from "next/link";
 import { adminAssignUsers, adminUpdateProject } from "@/app/actions/platform";
 import FileUploader from "@/components/platform/FileUploader";
 import FileRow from "@/components/platform/FileRow";
+import ProjectDeleteButton from "@/components/admin/ProjectDeleteButton";
 import { getDictionary } from "@/lib/i18n/server";
 import type { FolderSlug, ProjectStatus } from "@/lib/platform/types";
 
@@ -134,6 +135,8 @@ export default async function AdminProjectDetail({
           );
         })}
       </div>
+
+      <ProjectDeleteButton id={project.id} />
     </div>
   );
 }
