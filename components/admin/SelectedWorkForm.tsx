@@ -17,6 +17,13 @@ import {
   type SelectedWorkVideoSource,
 } from "@/lib/portfolio/types";
 import { extractVimeoId, vimeoPreviewSrc, type VimeoProbeResult } from "@/lib/portfolio/vimeo";
+import {
+  actionRejectionFrom,
+  actionResultFailure,
+  interpretSignedUploadResponse,
+  isPutUploadFailure,
+  uploadDiagnosticRecord,
+} from "@/lib/storage/diagnostics";
 
 type UploadState = {
   progress: number;
@@ -57,22 +64,38 @@ export default function SelectedWorkForm({ work }: { work?: SelectedWorkPublic }
       setUpload({ progress: 0, status: "uploading", name: file.name });
       setMessage(null);
 
+      const failUpload = () => {
+        setUpload({ progress: 0, status: "error", name: file.name });
+        setMessage(t.uploadFail);
+      };
+
+      const form = new FormData();
+      form.set("kind", kind);
+      form.set("file_name", file.name);
+      form.set("mime_type", file.type || "application/octet-stream");
+
+      let signed: Awaited<ReturnType<typeof createPortfolioUploadUrl>>;
       try {
-        const form = new FormData();
-        form.set("kind", kind);
-        form.set("file_name", file.name);
-        form.set("mime_type", file.type || "application/octet-stream");
+        signed = await createPortfolioUploadUrl(form);
+      } catch (error) {
+        console.error("[storage]", uploadDiagnosticRecord(kind, actionRejectionFrom(error)));
+        failUpload();
+        return;
+      }
 
-        const signed = await createPortfolioUploadUrl(form);
-        if (!signed || "error" in signed) {
-          setUpload({ progress: 0, status: "error", name: file.name });
-          setMessage(t.uploadFail);
-          return;
-        }
+      if (!signed || "error" in signed) {
+        const actionCode =
+          signed && "error" in signed && typeof signed.error === "string" ? signed.error : "empty";
+        console.error("[storage]", uploadDiagnosticRecord(kind, actionResultFailure(actionCode)));
+        failUpload();
+        return;
+      }
 
+      const ticket = signed;
+      try {
         await new Promise<void>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
-          xhr.open("PUT", signed.signedUrl);
+          xhr.open("PUT", ticket.signedUrl);
           xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
           xhr.upload.onprogress = (e) => {
             if (!e.lengthComputable) return;
@@ -82,21 +105,28 @@ export default function SelectedWorkForm({ work }: { work?: SelectedWorkPublic }
               name: file.name,
             });
           };
-          xhr.onload = () =>
-            xhr.status >= 200 && xhr.status < 300 ? resolve() : reject();
-          xhr.onerror = () => reject();
+          xhr.onload = () => {
+            const failure = interpretSignedUploadResponse(xhr.status, xhr.responseText || "");
+            if (failure) reject(failure);
+            else resolve();
+          };
+          xhr.onerror = () => reject(interpretSignedUploadResponse(0, ""));
           xhr.send(file);
         });
-
-        setPath(signed.path);
-        if (kind === "thumbnail") {
-          setThumbnailPreview(URL.createObjectURL(file));
-        }
-        setUpload({ progress: 100, status: "done", name: file.name });
-      } catch {
-        setUpload({ progress: 0, status: "error", name: file.name });
-        setMessage(t.uploadFail);
+      } catch (error) {
+        const failure = isPutUploadFailure(error)
+          ? error
+          : { source: "put" as const, status: 0, message: "network" };
+        console.error("[storage]", uploadDiagnosticRecord(kind, failure));
+        failUpload();
+        return;
       }
+
+      setPath(ticket.path);
+      if (kind === "thumbnail") {
+        setThumbnailPreview(URL.createObjectURL(file));
+      }
+      setUpload({ progress: 100, status: "done", name: file.name });
     },
     [t.uploadFail]
   );

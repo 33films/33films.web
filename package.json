@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "node --test lib/storage/diagnostics.test.ts",
     "emails:export": "npx --yes tsx --tsconfig scripts/tsconfig.json scripts/export-auth-emails.tsx"
   },
   "dependencies": {

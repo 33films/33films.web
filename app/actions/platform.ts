@@ -7,8 +7,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, requireUser } from "@/lib/auth/session";
 import { slugify, isAllowedFile } from "@/lib/platform/format";
 import { storage, queueNotification } from "@/lib/storage";
+import { classifyStorageFailure, logStorageFailure } from "@/lib/storage/diagnostics";
 import {
   SIGNED_URL_EXPIRES,
+  STORAGE_BUCKET,
   type ProjectStatus,
   type UserRole,
   type UserStatus,
@@ -385,35 +387,107 @@ export async function markFileSeen(fileId: string) {
 }
 
 export async function getDownloadUrl(fileId: string) {
-  try {
-    const { profile } = await requireUser();
-    const supabase = await createServerSupabase();
-    if (!supabase) return { error: "setup" as const };
+  const operation = "client-files.download";
+  const baseContext = { fileId, bucket: STORAGE_BUCKET };
 
-    const { data: file } = await supabase
+  let profile;
+  try {
+    ({ profile } = await requireUser());
+  } catch (error) {
+    logStorageFailure({
+      operation,
+      category: classifyStorageFailure(error),
+      context: { ...baseContext, stage: "session" },
+      error,
+    });
+    return { error: "unavailable" as const };
+  }
+
+  try {
+    const supabase = await createServerSupabase();
+    if (!supabase) {
+      logStorageFailure({
+        operation,
+        category: "configuration",
+        context: { ...baseContext, stage: "supabase_client" },
+      });
+      return { error: "setup" as const };
+    }
+
+    const { data: file, error: readError } = await supabase
       .from("files")
       .select("id, storage_path, original_name, project_id")
       .eq("id", fileId)
       .maybeSingle();
 
-    if (!file) return { error: "not_found" as const };
+    if (readError) {
+      logStorageFailure({
+        operation,
+        category: classifyStorageFailure(readError),
+        context: { ...baseContext, stage: "files_select" },
+        error: readError,
+      });
+      return { error: "unavailable" as const };
+    }
+
+    if (!file) {
+      logStorageFailure({
+        operation,
+        category: "not_found",
+        context: { ...baseContext, stage: "files_select" },
+      });
+      return { error: "not_found" as const };
+    }
 
     if (profile.role !== "admin") {
-      const { data: membership } = await supabase
+      const { data: membership, error: memberError } = await supabase
         .from("project_users")
         .select("user_id")
         .eq("project_id", file.project_id)
         .eq("user_id", profile.id)
         .maybeSingle();
-      if (!membership) return { error: "forbidden" as const };
+      if (memberError || !membership) {
+        logStorageFailure({
+          operation,
+          category: memberError ? classifyStorageFailure(memberError) : "authorization",
+          context: { ...baseContext, projectId: file.project_id, stage: "membership" },
+          error: memberError ?? undefined,
+        });
+        return { error: "forbidden" as const };
+      }
     }
 
-    const url = await storage.createSignedDownload(
-      file.storage_path,
-      SIGNED_URL_EXPIRES
-    );
-    return { url, name: file.original_name };
-  } catch {
+    if (!file.storage_path) {
+      logStorageFailure({
+        operation,
+        category: "not_found",
+        context: { ...baseContext, stage: "empty_path" },
+      });
+      return { error: "not_found" as const };
+    }
+
+    try {
+      const url = await storage.createSignedDownload(file.storage_path, SIGNED_URL_EXPIRES);
+      return { url, name: file.original_name };
+    } catch (error) {
+      const category = classifyStorageFailure(error);
+      logStorageFailure({
+        operation,
+        category,
+        context: { ...baseContext, stage: "sign", hasPath: true },
+        error,
+      });
+      if (category === "configuration") return { error: "setup" as const };
+      if (category === "not_found") return { error: "not_found" as const };
+      return { error: "unavailable" as const };
+    }
+  } catch (error) {
+    logStorageFailure({
+      operation,
+      category: classifyStorageFailure(error),
+      context: { ...baseContext, stage: "download" },
+      error,
+    });
     return { error: "unavailable" as const };
   }
 }

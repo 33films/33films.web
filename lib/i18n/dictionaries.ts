@@ -3,7 +3,7 @@ import type { Locale } from "./config";
 export const dictionaries = {
   es: {
     meta: {
-      title: "33FILMS — Estudio de Producción Audiovisual",
+      title: "33 Films - Producción audiovisual",
       description:
         "33FILMS es un estudio independiente de producción audiovisual con base en Uruguay, creando films cinematográficos, comerciales, videoclips y experiencias visuales.",
     },

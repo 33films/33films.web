@@ -20,6 +20,7 @@ import {
   type SelectedWorkVideoSource,
 } from "@/lib/portfolio/types";
 import { extractVimeoId, probeVimeoEmbed } from "@/lib/portfolio/vimeo";
+import { classifyStorageFailure, logStorageFailure } from "@/lib/storage/diagnostics";
 
 function schemaError(error: { code?: string; message?: string } | null) {
   const code = error?.code ?? "";
@@ -142,17 +143,29 @@ export async function createPortfolioUploadUrl(formData: FormData) {
 
   const safeName = fileName.replace(/[^\w.\-()+ ]/g, "_");
   const path = `${Date.now()}-${safeName}`;
-  const signed = await createPortfolioSignedUpload({
-    bucket,
-    path,
-    contentType: mimeType,
-  });
+  const kindLabel = isThumb ? "thumbnail" : kind === "video" ? "video" : "unknown";
 
-  return {
-    ok: true as const,
-    ...signed,
-    meta: { bucket, path, kind, fileName: safeName, mimeType },
-  };
+  try {
+    const signed = await createPortfolioSignedUpload({
+      bucket,
+      path,
+      contentType: mimeType,
+    });
+
+    return {
+      ok: true as const,
+      ...signed,
+      meta: { bucket, path, kind, fileName: safeName, mimeType },
+    };
+  } catch (error) {
+    logStorageFailure({
+      operation: `${bucket}.sign-upload`,
+      category: classifyStorageFailure(error),
+      context: { bucket, kind: kindLabel },
+      error,
+    });
+    return { error: "upload" as const };
+  }
 }
 
 type WorkRow = {
