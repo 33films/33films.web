@@ -13,7 +13,7 @@ export function getWhatsAppUrl() {
   const explicit = process.env.NEXT_PUBLIC_WHATSAPP_URL?.trim();
   if (explicit) return explicit;
 
-  const number = digitsOnly(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "");
+  const number = digitsOnly(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "59894664129");
   const text = encodeURIComponent(DEFAULT_WHATSAPP_MESSAGE);
   if (!number) return `https://wa.me/?text=${text}`;
   return `https://wa.me/${number}?text=${text}`;
