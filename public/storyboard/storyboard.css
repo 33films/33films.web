@@ -300,11 +300,59 @@
 
 #storyboard-app textarea.sb-area {
   display: block;
-  min-height: 1.45em;
-  height: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: calc(1.45em + 16px);
+  box-sizing: border-box;
   resize: none;
   overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
   line-height: 1.45;
+}
+
+.sb-print-value,
+.sb-print-copy {
+  display: none;
+  margin: 0;
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.sb-custom-title {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  background: transparent;
+  border: 0;
+  color: var(--sb-paper);
+  font-family: var(--sb-font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+}
+
+.sb-custom-title:focus {
+  outline: none;
+}
+
+.sb-custom-title::placeholder {
+  color: var(--sb-muted);
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+.sb-print-title {
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .sb-empty {
@@ -616,5 +664,35 @@
   .sb-shot {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  .sb-icon,
+  .sb-checks,
+  .sb-select,
+  .sb-field,
+  .sb-custom-title,
+  .sb-block-summary,
+  textarea.sb-area,
+  .sb-choice.is-empty,
+  .sb-cell.is-empty {
+    display: none !important;
+  }
+
+  .sb-print-value,
+  .sb-print-copy {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    color: #111 !important;
+  }
+
+  .sb-print-title:empty {
+    display: none !important;
   }
 }

@@ -19,7 +19,7 @@ export default async function ProjectStoryboardPage({
 
   return (
     <div className="sb-page -mx-5 -my-10 min-h-full bg-black md:-mx-10 md:-my-12">
-      <link rel="stylesheet" href="/storyboard/storyboard.css?v=20261116b" />
+      <link rel="stylesheet" href="/storyboard/storyboard.css?v=20261116c" />
       <ProjectToolNav
         projectId={project.id}
         projectName={project.name}
@@ -30,7 +30,7 @@ export default async function ProjectStoryboardPage({
         data-project-id={project.id}
         data-project-name={project.name}
       />
-      <Script src="/storyboard/storyboard.js?v=20261116b" strategy="afterInteractive" />
+      <Script src="/storyboard/storyboard.js?v=20261116c" strategy="afterInteractive" />
     </div>
   );
 }

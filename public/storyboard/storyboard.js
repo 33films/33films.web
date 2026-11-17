@@ -525,7 +525,7 @@
   }
 
   function summary(block) {
-    if (block.type === "custom") return block.name || "Personalizado";
+    if (block.type === "custom") return block.name || "";
     if (block.type === "optics") {
       const bits = block.values.slice();
       if (block.focal) bits.push(`${block.focal} mm`);
@@ -545,6 +545,15 @@
     return text ? text.slice(0, 90) : categoryLabel(block.type);
   }
 
+  function printValue(text) {
+    return `<p class="sb-print-value">${escapeHtml(text || "")}</p>`;
+  }
+
+  function choice(editor, printed) {
+    const value = String(printed || "").trim();
+    return `<div class="sb-choice${value ? "" : " is-empty"}">${editor}${printValue(value)}</div>`;
+  }
+
   function checks(block, key, list) {
     const selected = block[key] || [];
     return `<div class="sb-checks">${listWithCurrent(list, selected)
@@ -560,20 +569,24 @@
   }
 
   function noteField(block, key, label, placeholder) {
-    return `<label class="sb-cell">
+    const value = block[key] || "";
+    return `<label class="sb-cell${String(value).trim() ? "" : " is-empty"}">
       <span class="sb-label">${label}</span>
       <textarea class="sb-area" data-block="${block.id}" data-key="${key}" rows="1" placeholder="${escapeHtml(
         placeholder
-      )}">${escapeHtml(block[key])}</textarea>
+      )}">${escapeHtml(value)}</textarea>
+      <div class="sb-print-copy">${escapeHtml(value)}</div>
     </label>`;
   }
 
   function textField(block, key, label, placeholder) {
-    return `<label class="sb-cell">
+    const value = block[key] || "";
+    return `<label class="sb-cell${String(value).trim() ? "" : " is-empty"}">
       <span class="sb-label">${label}</span>
       <input class="sb-field" data-block="${block.id}" data-key="${key}" placeholder="${escapeHtml(
         placeholder
-      )}" value="${escapeHtml(block[key])}" />
+      )}" value="${escapeHtml(value)}" />
+      ${printValue(String(value).trim())}
     </label>`;
   }
 
@@ -587,10 +600,13 @@
         )
       )
       .join("");
-    return `<label class="sb-cell">
+    return choice(
+      `<label class="sb-cell">
       <span class="sb-label">${label}</span>
       <select class="sb-select" data-block="${block.id}" data-key="${key}">${options}</select>
-    </label>`;
+    </label>`,
+      current
+    );
   }
 
   function renderBlockBody(block) {
@@ -601,43 +617,62 @@
           : block.type === "transition"
             ? noteField(block, "note", "Indicaciones de montaje", "Cómo conecta con el plano siguiente")
             : noteField(block, "note", "Nota", "Detalle opcional");
-      return `${checks(block, "values", CHECK_LISTS[block.type])}${extra}`;
+      return `${choice(checks(block, "values", CHECK_LISTS[block.type]), (block.values || []).join(" · "))}${extra}`;
     }
     if (block.type === "optics") {
-      return `${checks(block, "values", LENSES)}
+      return `${choice(checks(block, "values", LENSES), block.values.join(" · "))}
         <div class="sb-inline">
           ${textField(block, "focal", "Distancia focal", "50")}
           ${textField(block, "aperture", "Apertura", "T2")}
           ${textField(block, "focusDistance", "Distancia de enfoque", "1.4 m")}
         </div>
         ${selectField(block, "dof", "Profundidad de campo", DEPTHS, "Seleccionar")}
-        <p class="sb-group">Características</p>
-        ${checks(block, "flags", LENS_FLAGS)}`;
+        ${choice(`<p class="sb-group">Características</p>${checks(block, "flags", LENS_FLAGS)}`, block.flags.join(" · "))}`;
     }
     if (block.type === "audio") {
       return `${selectField(block, "values", "Elemento", AUDIO, "Seleccionar")}
         ${noteField(block, "note", "Descripción", "Cómo suena este elemento")}`;
     }
     if (block.type === "vfx") {
-      return `<p class="sb-group">Velocidad y tiempo</p>
-        ${checks(block, "values", VFX_SPEED)}
-        <p class="sb-group">Efectos ópticos y de imagen</p>
-        ${checks(block, "flags", VFX_IMAGE)}
-        <p class="sb-group">Transiciones</p>
-        ${checks(block, "flags", TRANSITIONS)}
+      const imageFlags = block.flags.filter((item) => VFX_IMAGE.includes(item));
+      const transitionFlags = block.flags.filter((item) => TRANSITIONS.includes(item));
+      return `${choice(`<p class="sb-group">Velocidad y tiempo</p>${checks(block, "values", VFX_SPEED)}`, block.values.join(" · "))}
+        ${choice(`<p class="sb-group">Efectos ópticos y de imagen</p>${checks(block, "flags", VFX_IMAGE)}`, imageFlags.join(" · "))}
+        ${choice(`<p class="sb-group">Transiciones</p>${checks(block, "flags", TRANSITIONS)}`, transitionFlags.join(" · "))}
         ${selectField(block, "execution", "Realización", ["Rodaje", "Postproducción"], "Rodaje o postproducción")}
         ${noteField(block, "note", "Descripción del efecto", "Cómo debe ejecutarse")}`;
     }
     if (block.type === "action") return noteField(block, "text", "Acción", "Qué sucede");
     if (block.type === "duration") return textField(block, "text", "Duración", "6 segundos");
     if (block.type === "notes") return noteField(block, "text", "Observaciones", "Notas del plano");
-    return `${textField(block, "name", "Nombre", "Nombre del elemento")}
-      ${textField(block, "category", "Categoría", "Categoría")}
-      ${noteField(block, "text", "Descripción", "Descripción")}
-      ${noteField(block, "note", "Observaciones", "Observaciones")}`;
+    return noteField(block, "text", "Descripción", "Descripción");
+  }
+
+  function blockTools() {
+    return `<div class="sb-block-tools">
+          <button type="button" class="sb-icon" data-action="move-block" data-dir="-1" aria-label="Subir">↑</button>
+          <button type="button" class="sb-icon" data-action="move-block" data-dir="1" aria-label="Bajar">↓</button>
+          <button type="button" class="sb-icon" data-action="duplicate-block" aria-label="Duplicar">Dup</button>
+          <button type="button" class="sb-icon" data-action="remove-block" aria-label="Eliminar">×</button>
+        </div>`;
   }
 
   function renderBlock(block) {
+    if (block.type === "custom") {
+      return `<article class="sb-block sb-block-custom${block.collapsed ? " is-collapsed" : ""}" data-block-id="${block.id}">
+      <div class="sb-block-head">
+        <input class="sb-custom-title" data-block="${block.id}" data-key="name" placeholder="Nombre del campo" value="${escapeHtml(block.name)}" />
+        <p class="sb-print-value sb-print-title">${escapeHtml(block.name.trim())}</p>
+        <button type="button" class="sb-icon" data-action="toggle-block" aria-label="Contraer">▾</button>
+        ${blockTools()}
+      </div>
+      <div class="sb-block-body">
+        ${textField(block, "category", "Categoría", "Categoría")}
+        ${noteField(block, "text", "Descripción", "Descripción")}
+        ${noteField(block, "note", "Observaciones", "Observaciones")}
+      </div>
+    </article>`;
+    }
     return `<article class="sb-block${block.collapsed ? " is-collapsed" : ""}" data-block-id="${block.id}">
       <div class="sb-block-head">
         <button type="button" class="sb-block-toggle" data-action="toggle-block">
@@ -691,6 +726,7 @@
       </div>
     `;
     fitAreas();
+    syncPrintView();
   }
 
   function renderScene(scene) {
@@ -725,12 +761,85 @@
 
   function fitArea(area) {
     if (!area || area.tagName !== "TEXTAREA") return;
-    area.style.height = "auto";
+    if (area.getClientRects().length === 0) return;
+    area.style.height = "0px";
     area.style.height = `${area.scrollHeight}px`;
   }
 
   function fitAreas() {
     root.querySelectorAll("textarea.sb-area").forEach(fitArea);
+  }
+
+  function syncPrintView() {
+    root.querySelectorAll("textarea.sb-area").forEach((area) => {
+      const copy = area.parentElement?.querySelector(".sb-print-copy");
+      if (copy) copy.textContent = area.value;
+      area.closest(".sb-cell")?.classList.toggle("is-empty", !area.value.trim());
+      fitArea(area);
+    });
+    root.querySelectorAll("input.sb-field").forEach((field) => {
+      const cell = field.closest(".sb-cell");
+      const copy = cell?.querySelector(".sb-print-value");
+      if (copy) copy.textContent = field.value.trim();
+      cell?.classList.toggle("is-empty", !field.value.trim());
+    });
+    root.querySelectorAll("select.sb-select").forEach((select) => {
+      const choice = select.closest(".sb-choice");
+      const copy = choice?.querySelector(":scope > .sb-print-value");
+      const text = select.value ? select.selectedOptions[0]?.textContent || "" : "";
+      if (copy) copy.textContent = text.trim();
+      choice?.classList.toggle("is-empty", !text.trim());
+    });
+    root.querySelectorAll(".sb-checks").forEach((box) => {
+      const choice = box.closest(".sb-choice");
+      const copy = choice?.querySelector(":scope > .sb-print-value");
+      const names = [...box.querySelectorAll("input:checked")].map((input) => input.dataset.value || "");
+      if (copy) copy.textContent = names.filter(Boolean).join(" · ");
+      choice?.classList.toggle("is-empty", names.filter(Boolean).length === 0);
+    });
+    root.querySelectorAll(".sb-custom-title").forEach((field) => {
+      const title = field.parentElement?.querySelector(".sb-print-title");
+      if (title) title.textContent = field.value.trim();
+    });
+  }
+
+  function syncControl(el) {
+    if (!el) return;
+    if (el.tagName === "TEXTAREA") {
+      const copy = el.parentElement?.querySelector(".sb-print-copy");
+      if (copy) copy.textContent = el.value;
+      el.closest(".sb-cell")?.classList.toggle("is-empty", !el.value.trim());
+      fitArea(el);
+      return;
+    }
+    if (el.classList.contains("sb-custom-title")) {
+      const title = el.parentElement?.querySelector(".sb-print-title");
+      if (title) title.textContent = el.value.trim();
+      return;
+    }
+    if (el.classList.contains("sb-field")) {
+      const cell = el.closest(".sb-cell");
+      const copy = cell?.querySelector(".sb-print-value");
+      if (copy) copy.textContent = el.value.trim();
+      cell?.classList.toggle("is-empty", !el.value.trim());
+      return;
+    }
+    if (el.tagName === "SELECT") {
+      const choice = el.closest(".sb-choice");
+      const copy = choice?.querySelector(":scope > .sb-print-value");
+      const text = el.value ? el.selectedOptions[0]?.textContent || "" : "";
+      if (copy) copy.textContent = text.trim();
+      choice?.classList.toggle("is-empty", !text.trim());
+      return;
+    }
+    if (el.type === "checkbox") {
+      const box = el.closest(".sb-checks");
+      const choice = el.closest(".sb-choice");
+      const names = [...(box?.querySelectorAll("input:checked") || [])].map((input) => input.dataset.value || "");
+      const copy = choice?.querySelector(":scope > .sb-print-value");
+      if (copy) copy.textContent = names.filter(Boolean).join(" · ");
+      choice?.classList.toggle("is-empty", names.filter(Boolean).length === 0);
+    }
   }
 
   function renderShot(shot, shotIndex) {
@@ -748,29 +857,35 @@
           <div class="sb-shot-num">Toma ${shotIndex + 1}</div>
           <button type="button" class="sb-btn danger" data-action="remove-shot">Eliminar</button>
         </div>
-        <label class="sb-cell sb-cell-frame">
+        <label class="sb-cell sb-cell-frame sb-choice">
           <span class="sb-label">Encuadre / Plano</span>
           <select class="sb-select" data-field="frame">${options(FRAMES, shot.frame)}</select>
+          ${printValue(shot.frame)}
         </label>
-        <label class="sb-cell sb-cell-move">
+        <label class="sb-cell sb-cell-move sb-choice">
           <span class="sb-label">Movimiento de cámara</span>
           <select class="sb-select" data-field="movement">${options(MOVES, shot.movement)}</select>
+          ${printValue(shot.movement)}
         </label>
-        <label class="sb-cell sb-cell-duration">
+        <label class="sb-cell sb-cell-duration${String(shot.duration).trim() ? "" : " is-empty"}">
           <span class="sb-label">Duración</span>
           <input class="sb-field" data-field="duration" placeholder="00:04" value="${escapeHtml(shot.duration)}" />
+          ${printValue(String(shot.duration).trim())}
         </label>
-        <label class="sb-cell sb-cell-action">
+        <label class="sb-cell sb-cell-action${String(shot.action).trim() ? "" : " is-empty"}">
           <span class="sb-label">Acción</span>
           <textarea class="sb-area" data-field="action" placeholder="Qué sucede" rows="1">${escapeHtml(shot.action)}</textarea>
+          <div class="sb-print-copy">${escapeHtml(shot.action)}</div>
         </label>
-        <label class="sb-cell sb-cell-audio">
+        <label class="sb-cell sb-cell-audio${String(shot.audio).trim() ? "" : " is-empty"}">
           <span class="sb-label">Audio / Diálogo</span>
           <textarea class="sb-area" data-field="audio" placeholder="Diálogo / FX" rows="1">${escapeHtml(shot.audio)}</textarea>
+          <div class="sb-print-copy">${escapeHtml(shot.audio)}</div>
         </label>
-        <label class="sb-cell sb-cell-notes">
+        <label class="sb-cell sb-cell-notes${String(shot.notes).trim() ? "" : " is-empty"}">
           <span class="sb-label">Notas</span>
           <textarea class="sb-area" data-field="notes" placeholder="Notas" rows="1">${escapeHtml(shot.notes)}</textarea>
+          <div class="sb-print-copy">${escapeHtml(shot.notes)}</div>
         </label>
         <div class="sb-blocks">
           ${shot.blocks.map(renderBlock).join("")}
@@ -943,14 +1058,12 @@
       const shot = shotFromEl(event.target);
       if (shot && Object.prototype.hasOwnProperty.call(shot, field) && field !== "blocks") {
         shot[field] = event.target.value;
-        if (event.target.tagName === "TEXTAREA") fitArea(event.target);
+        syncControl(event.target);
         save();
         return;
       }
     }
-    if (applyControl(event.target)) {
-      if (event.target.tagName === "TEXTAREA") fitArea(event.target);
-    }
+    if (applyControl(event.target)) syncControl(event.target);
   });
 
   root.addEventListener("change", async (event) => {
@@ -968,6 +1081,13 @@
       return;
     }
     applyControl(event.target, true);
+    syncControl(event.target);
+  });
+
+  window.addEventListener("resize", fitAreas);
+  window.addEventListener("beforeprint", () => {
+    syncPrintView();
+    fitAreas();
   });
 
   root.addEventListener("dragover", (event) => {
