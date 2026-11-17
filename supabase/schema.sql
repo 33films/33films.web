@@ -105,6 +105,12 @@ create table if not exists public.notifications (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.project_storyboards (
+  project_id uuid primary key references public.projects(id) on delete cascade,
+  document jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
 create or replace function public.is_admin()
 returns boolean
 language sql
@@ -264,6 +270,12 @@ create policy "activity_insert_admin" on public.activity_logs
 drop policy if exists "notifications_own" on public.notifications;
 create policy "notifications_own" on public.notifications
   for select using (user_id = auth.uid() or public.is_admin());
+
+alter table public.project_storyboards enable row level security;
+
+drop policy if exists "storyboards_admin_all" on public.project_storyboards;
+create policy "storyboards_admin_all" on public.project_storyboards
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- Storage bucket must be PRIVATE. Create it in the dashboard or:
 insert into storage.buckets (id, name, public)

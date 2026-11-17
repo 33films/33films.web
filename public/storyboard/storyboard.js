@@ -3,6 +3,7 @@
     "Plano General",
     "Plano Americano",
     "Plano Medio",
+    "Plano Medio Corto (PMC)",
     "Primer Plano",
     "Primerísimo Primer Plano",
     "Plano Detalle",
@@ -11,30 +12,290 @@
     "Plano Contrapicado",
   ];
 
+  const ANGLES = [
+    "Normal / Eye Level",
+    "Picado",
+    "Cenital",
+    "Contrapicado",
+    "Nadir",
+    "Dutch Angle",
+    "Perfil",
+    "Tres cuartos",
+    "Espalda / Nuca",
+    "Overhead",
+  ];
+
   const MOVES = [
     "Fijo",
     "Paneo",
+    "Pan",
     "Tilt",
-    "Travelling",
+    "Tilt Up",
+    "Tilt Down",
+    "Roll",
     "Dolly",
-    "Steadicam",
-    "Handheld",
-    "Zoom",
-    "Crane",
+    "Dolly In",
+    "Dolly Out",
+    "Travelling",
+    "Travelling / Tracking",
+    "Travelling lateral",
+    "Travelling circular / Arc Shot",
     "Orbital",
+    "Orbit 360°",
+    "Crane",
+    "Crane Up",
+    "Crane Down",
+    "Jib Movement",
+    "Handheld",
+    "Steadicam",
+    "Gimbal",
+    "Drone Shot",
+    "Whip Pan",
+    "Zoom",
+    "Zoom In",
+    "Zoom Out",
+    "Dolly Zoom",
+    "Rack Focus",
+    "Focus Pull",
+    "Crash Zoom",
+    "Snap Zoom",
+    "Slow Push-in",
+    "Slow Pull-out",
+    "Reveal Shot",
+    "Follow Shot",
+    "Lead Shot",
+    "Reverse Tracking",
+    "Parallax Movement",
+    "Dutch Roll",
+    "Snorricam",
+    "Bodycam",
+    "POV Moving Shot",
+    "Plano secuencia / One-Take",
+    "Bullet Time",
   ];
 
-  const root = document.getElementById("storyboard-app");
-  if (!root) return;
+  const LENSES = [
+    "Ultra gran angular",
+    "Gran angular",
+    "Normal",
+    "Teleobjetivo corto",
+    "Teleobjetivo",
+    "Macro",
+    "Anamórfico",
+    "Tilt-shift",
+  ];
 
-  const projectId = root.dataset.projectId || "draft";
-  const projectName = root.dataset.projectName || "33 FILMS";
-  const storageKey = `33films-storyboard:${projectId}`;
+  const LENS_FLAGS = [
+    "Bokeh",
+    "Enfoque selectivo",
+    "Foco infinito",
+    "Cambio de distancia focal",
+    "Respiración de foco (Focus Breathing)",
+  ];
 
-  const state = load() || { scenes: [createScene(1)] };
+  const DEPTHS = ["Superficial", "Media", "Profunda"];
+
+  const LIGHTING = [
+    "Hard Light",
+    "Soft Light",
+    "Claroscuro",
+    "Contraluz",
+    "Rim Light",
+    "Practical Lighting",
+    "Key Light",
+    "Fill Light",
+    "Back Light",
+    "Top Light",
+    "Underlighting",
+    "High Key",
+    "Low Key",
+    "Silhouette Lighting",
+    "Motivated Lighting",
+    "Volumetric Lighting",
+    "Haze / Fog",
+    "Color Contrast",
+    "Efectos prácticos",
+  ];
+
+  const COMPOSITION = [
+    "Regla de los tercios",
+    "Composición simétrica",
+    "Espacio negativo",
+    "Frame within Frame",
+    "Líneas de fuga",
+    "Encuadre en profundidad",
+    "Silueta",
+    "Profundidad de campo",
+    "Headroom",
+    "Lead Room / Nose Room",
+    "Look Room",
+    "Dirty Frame",
+    "Clean Frame",
+    "Split Diopter",
+    "Profundidad por capas",
+    "Composición diagonal",
+    "Composición triangular",
+    "Composición radial",
+    "Composición central",
+    "Composición descentrada",
+    "Oclusión parcial",
+    "Reflejos y espejos",
+  ];
+
+  const AUDIO = [
+    "Diálogo",
+    "Voz en off (VO)",
+    "Voz fuera de campo (OS)",
+    "Sonido ambiente",
+    "Room Tone",
+    "Foley",
+    "Sound Effects (SFX)",
+    "Música incidental",
+    "Música diegética",
+    "Música extradiegética",
+    "Silencio",
+    "Reverberación",
+    "Eco",
+    "Sonido filtrado",
+    "Distorsión sonora",
+    "Subgrave",
+    "Whoosh",
+    "Impact",
+    "Risers",
+    "Stingers",
+    "Sound Design subjetivo",
+    "Sonido fuera de sincronía",
+    "J-Cut",
+    "L-Cut",
+    "Sound Bridge",
+  ];
+
+  const PERFORMANCE = [
+    "Dirección de mirada",
+    "Movimiento corporal",
+    "Expresión facial",
+    "Gestualidad",
+    "Desplazamiento",
+    "Coreografía",
+    "Interacción con objetos",
+    "Entrada y salida de cuadro",
+    "Movimiento de manos",
+    "Cambio de postura",
+    "Reacción emocional",
+    "Pausas dramáticas",
+    "Respiración",
+    "Miradas fuera de campo",
+    "Acciones simultáneas",
+    "Movimiento de extras",
+    "Movimiento de elementos ambientales",
+  ];
+
+  const VFX_SPEED = [
+    "Slow Motion",
+    "Speed Ramp",
+    "Timelapse",
+    "Freeze Frame",
+    "Motion Blur",
+    "Stutter Effect",
+    "Reverse Motion",
+    "Frame Blending",
+    "Optical Flow",
+    "Flicker Effect",
+    "Jump Cut",
+    "Match Cut",
+    "Smash Cut",
+    "Flash Frame",
+    "Loop",
+  ];
+
+  const VFX_IMAGE = [
+    "Lens Flare",
+    "Light Leak",
+    "Chromatic Aberration",
+    "Vignette",
+    "Distortion",
+    "Fisheye",
+    "Split Screen",
+    "Double Exposure",
+    "Ghosting",
+    "Glitch",
+    "RGB Split",
+    "Film Grain",
+    "Halation",
+    "Bloom",
+    "Defocus",
+    "Blur",
+    "Shutter Drag",
+    "Light Painting",
+  ];
+
+  const TRANSITIONS = [
+    "Corte directo",
+    "Fundido a negro",
+    "Fundido desde negro",
+    "Dissolve",
+    "Wipe",
+    "Iris In / Iris Out",
+    "Graphic Match",
+    "Whip Transition",
+    "Zoom Transition",
+    "Luma Fade",
+    "Morph Transition",
+    "Glitch Transition",
+    "Corte por movimiento",
+    "Corte por mirada",
+    "Corte por acción",
+    "Corte por forma o color",
+  ];
+
+  const CATEGORIES = [
+    { id: "frame", label: "Plano" },
+    { id: "angle", label: "Ángulo" },
+    { id: "movement", label: "Movimiento de cámara" },
+    { id: "optics", label: "Óptica" },
+    { id: "composition", label: "Composición" },
+    { id: "lighting", label: "Iluminación" },
+    { id: "action", label: "Acción" },
+    { id: "performance", label: "Actuación" },
+    { id: "duration", label: "Duración" },
+    { id: "audio", label: "Audio" },
+    { id: "vfx", label: "VFX" },
+    { id: "transition", label: "Transición y montaje" },
+    { id: "notes", label: "Observaciones" },
+    { id: "custom", label: "+ Personalizado" },
+  ];
+
+  const CHECK_LISTS = {
+    frame: FRAMES,
+    angle: ANGLES,
+    movement: MOVES,
+    composition: COMPOSITION,
+    lighting: LIGHTING,
+    performance: PERFORMANCE,
+    transition: TRANSITIONS,
+  };
 
   function uid() {
     return Math.random().toString(36).slice(2, 10);
+  }
+
+  function createBlock(type) {
+    return {
+      id: uid(),
+      type,
+      collapsed: false,
+      values: [],
+      flags: [],
+      text: "",
+      note: "",
+      focal: "",
+      aperture: "",
+      focusDistance: "",
+      dof: "",
+      execution: "",
+      name: "",
+      category: "",
+    };
   }
 
   function createShot() {
@@ -47,6 +308,7 @@
       audio: "",
       duration: "",
       notes: "",
+      blocks: [],
     };
   }
 
@@ -58,6 +320,137 @@
     };
   }
 
+  function listWithCurrent(list, selected) {
+    const extra = (selected || []).filter((item) => item && !list.includes(item));
+    return extra.concat(list);
+  }
+
+  function absorbCoreBlocks(shot, blocks) {
+    const extras = [];
+    const seen = new Set();
+    blocks.forEach((block) => {
+      if (!["frame", "movement", "action", "duration", "audio", "notes"].includes(block.type) || seen.has(block.type)) {
+        extras.push(block);
+        return;
+      }
+      seen.add(block.type);
+      if (block.type === "frame") {
+        const value = block.values[0] || "";
+        if (!shot.frame) shot.frame = value;
+        else if (value && shot.frame !== value) extras.push(block);
+      } else if (block.type === "movement") {
+        const [primary, ...rest] = block.values;
+        if (!shot.movement && primary) shot.movement = primary;
+        if (rest.length) {
+          const extra = createBlock("movement");
+          extra.values = rest;
+          extra.collapsed = block.collapsed;
+          extra.note = block.note;
+          extras.push(extra);
+        } else if (primary && shot.movement && shot.movement !== primary) {
+          extras.push(block);
+        }
+      } else if (block.type === "action") {
+        if (!shot.action) shot.action = block.text || "";
+        else if (block.text && shot.action !== block.text) extras.push(block);
+      } else if (block.type === "duration") {
+        if (!shot.duration) shot.duration = block.text || "";
+        else if (block.text && shot.duration !== block.text) extras.push(block);
+      } else if (block.type === "notes") {
+        if (!shot.notes) shot.notes = block.text || "";
+        else if (block.text && shot.notes !== block.text) extras.push(block);
+      } else if (block.type === "audio") {
+        const text = [block.values[0], block.note].filter(Boolean).join(" — ");
+        if (!shot.audio) shot.audio = text;
+        else if (text && shot.audio !== text) extras.push(block);
+      }
+    });
+    return extras;
+  }
+
+  function ensureBlock(block) {
+    const next = createBlock(block?.type || "notes");
+    const source = block && typeof block === "object" ? block : {};
+    next.id = source.id || next.id;
+    next.type = typeof source.type === "string" && source.type ? source.type : "custom";
+    next.collapsed = Boolean(source.collapsed);
+    next.values = Array.isArray(source.values) ? source.values.filter(Boolean) : [];
+    next.flags = Array.isArray(source.flags) ? source.flags.filter(Boolean) : [];
+    next.text = String(source.text ?? "");
+    next.note = String(source.note ?? "");
+    next.focal = String(source.focal ?? "");
+    next.aperture = String(source.aperture ?? "");
+    next.focusDistance = String(source.focusDistance ?? "");
+    next.dof = String(source.dof ?? "");
+    next.execution = String(source.execution ?? "");
+    next.name = String(source.name ?? "");
+    next.category = String(source.category ?? "");
+    return next;
+  }
+
+  function normalizeShot(shot) {
+    const next = {
+      id: shot?.id || uid(),
+      image: typeof shot?.image === "string" ? shot.image : "",
+      frame: String(shot?.frame ?? ""),
+      movement: String(shot?.movement ?? ""),
+      action: String(shot?.action ?? ""),
+      audio: String(shot?.audio ?? ""),
+      duration: String(shot?.duration ?? ""),
+      notes: String(shot?.notes ?? ""),
+      blocks: [],
+    };
+    next.blocks = absorbCoreBlocks(
+      next,
+      Array.isArray(shot?.blocks) ? shot.blocks.map(ensureBlock) : []
+    );
+    return next;
+  }
+
+  function normalizeDocument(document) {
+    const scenes = Array.isArray(document?.scenes) ? document.scenes : [];
+    return {
+      scenes: scenes.map((scene, index) => ({
+        id: scene?.id || uid(),
+        title: String(scene?.title || `ESCENA ${index + 1}`),
+        shots: Array.isArray(scene?.shots) ? scene.shots.map(normalizeShot) : [],
+      })),
+    };
+  }
+
+  function mirrorLegacy(shot) {
+    return shot;
+  }
+
+  const api = {
+    FRAMES,
+    ANGLES,
+    MOVES,
+    AUDIO,
+    CATEGORIES,
+    createBlock,
+    createShot,
+    createScene,
+    normalizeDocument,
+    mirrorLegacy,
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+
+  const root = typeof document !== "undefined" ? document.getElementById("storyboard-app") : null;
+  if (!root) return;
+
+  const projectId = root.dataset.projectId || "draft";
+  const projectName = root.dataset.projectName || "33 FILMS";
+  const storageKey = `33films-storyboard:${projectId}`;
+  const state = normalizeDocument(load()) || { scenes: [] };
+  if (!state.scenes.length) state.scenes = [createScene(1)];
+
+  let openMenuShotId = null;
+  let dirty = false;
+  let remoteTimer = 0;
+  let remoteEnabled = true;
+
   function load() {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -67,43 +460,56 @@
     }
   }
 
-  function save() {
+  function persistLocal() {
+    state.scenes.forEach((scene) => scene.shots.forEach(mirrorLegacy));
     localStorage.setItem(storageKey, JSON.stringify(state));
   }
 
-  function fileToImage(file) {
-    return new Promise((resolve, reject) => {
-      if (!file || !file.type.startsWith("image/")) {
-        reject(new Error("invalid"));
-        return;
-      }
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        const max = 720;
-        const scale = Math.min(1, max / img.width);
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(img.width * scale));
-        canvas.height = Math.max(1, Math.round(img.height * scale));
-        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", 0.78));
-        URL.revokeObjectURL(url);
-      };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error("image"));
-      };
-      img.src = url;
-    });
+  function markStatus(text) {
+    const node = root.querySelector("[data-save-status]");
+    if (node) node.textContent = text;
   }
 
-  function options(list, selected) {
-    return list
-      .map(
-        (item) =>
-          `<option value="${escapeHtml(item)}"${item === selected ? " selected" : ""}>${escapeHtml(item)}</option>`
-      )
-      .join("");
+  function save() {
+    dirty = true;
+    persistLocal();
+    markStatus("Guardado en este navegador");
+    if (!remoteEnabled) return;
+    clearTimeout(remoteTimer);
+    remoteTimer = setTimeout(pushRemote, 700);
+  }
+
+  async function pullRemote() {
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/storyboard`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) return { unavailable: true };
+      const body = await response.json();
+      if (body?.error === "schema") return { unavailable: true };
+      return { document: body?.document ?? null };
+    } catch {
+      return { unavailable: true };
+    }
+  }
+
+  async function pushRemote() {
+    if (!remoteEnabled) return;
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/storyboard`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ document: state }),
+      });
+      if (response.status === 503) {
+        remoteEnabled = false;
+        return;
+      }
+      if (!response.ok) return;
+      markStatus("Guardado");
+    } catch {
+      markStatus("Guardado en este navegador");
+    }
   }
 
   function escapeHtml(value) {
@@ -112,6 +518,156 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function categoryLabel(type) {
+    return CATEGORIES.find((item) => item.id === type)?.label || "Elemento";
+  }
+
+  function summary(block) {
+    if (block.type === "custom") return block.name || "Personalizado";
+    if (block.type === "optics") {
+      const bits = block.values.slice();
+      if (block.focal) bits.push(`${block.focal} mm`);
+      if (block.aperture) bits.push(block.aperture);
+      if (block.dof) bits.push(block.dof);
+      return bits.join(" · ") || "Óptica";
+    }
+    if (block.type === "audio") {
+      return [block.values[0], block.note].filter(Boolean).join(" — ") || "Audio";
+    }
+    if (block.type === "vfx") {
+      const bits = block.values.concat(block.flags);
+      return bits.join(" · ") || "VFX";
+    }
+    if (block.values.length) return block.values.join(" · ");
+    const text = (block.text || block.note || "").replace(/\s+/g, " ").trim();
+    return text ? text.slice(0, 90) : categoryLabel(block.type);
+  }
+
+  function checks(block, key, list) {
+    const selected = block[key] || [];
+    return `<div class="sb-checks">${listWithCurrent(list, selected)
+      .map(
+        (item) => `<label class="sb-check">
+          <input type="checkbox" data-block="${block.id}" data-key="${key}" data-value="${escapeHtml(item)}"${
+            selected.includes(item) ? " checked" : ""
+          } />
+          <span>${escapeHtml(item)}</span>
+        </label>`
+      )
+      .join("")}</div>`;
+  }
+
+  function noteField(block, key, label, placeholder) {
+    return `<label class="sb-cell">
+      <span class="sb-label">${label}</span>
+      <textarea class="sb-area" data-block="${block.id}" data-key="${key}" rows="1" placeholder="${escapeHtml(
+        placeholder
+      )}">${escapeHtml(block[key])}</textarea>
+    </label>`;
+  }
+
+  function textField(block, key, label, placeholder) {
+    return `<label class="sb-cell">
+      <span class="sb-label">${label}</span>
+      <input class="sb-field" data-block="${block.id}" data-key="${key}" placeholder="${escapeHtml(
+        placeholder
+      )}" value="${escapeHtml(block[key])}" />
+    </label>`;
+  }
+
+  function selectField(block, key, label, list, placeholder) {
+    const current = key === "values" ? block.values[0] || "" : block[key] || "";
+    const options = [`<option value="">${escapeHtml(placeholder)}</option>`]
+      .concat(
+        listWithCurrent(list, current ? [current] : []).map(
+          (item) =>
+            `<option value="${escapeHtml(item)}"${item === current ? " selected" : ""}>${escapeHtml(item)}</option>`
+        )
+      )
+      .join("");
+    return `<label class="sb-cell">
+      <span class="sb-label">${label}</span>
+      <select class="sb-select" data-block="${block.id}" data-key="${key}">${options}</select>
+    </label>`;
+  }
+
+  function renderBlockBody(block) {
+    if (CHECK_LISTS[block.type]) {
+      const extra =
+        block.type === "lighting"
+          ? noteField(block, "note", "Observaciones de luz", "Dirección, intensidad, temperatura, color")
+          : block.type === "transition"
+            ? noteField(block, "note", "Indicaciones de montaje", "Cómo conecta con el plano siguiente")
+            : noteField(block, "note", "Nota", "Detalle opcional");
+      return `${checks(block, "values", CHECK_LISTS[block.type])}${extra}`;
+    }
+    if (block.type === "optics") {
+      return `${checks(block, "values", LENSES)}
+        <div class="sb-inline">
+          ${textField(block, "focal", "Distancia focal", "50")}
+          ${textField(block, "aperture", "Apertura", "T2")}
+          ${textField(block, "focusDistance", "Distancia de enfoque", "1.4 m")}
+        </div>
+        ${selectField(block, "dof", "Profundidad de campo", DEPTHS, "Seleccionar")}
+        <p class="sb-group">Características</p>
+        ${checks(block, "flags", LENS_FLAGS)}`;
+    }
+    if (block.type === "audio") {
+      return `${selectField(block, "values", "Elemento", AUDIO, "Seleccionar")}
+        ${noteField(block, "note", "Descripción", "Cómo suena este elemento")}`;
+    }
+    if (block.type === "vfx") {
+      return `<p class="sb-group">Velocidad y tiempo</p>
+        ${checks(block, "values", VFX_SPEED)}
+        <p class="sb-group">Efectos ópticos y de imagen</p>
+        ${checks(block, "flags", VFX_IMAGE)}
+        <p class="sb-group">Transiciones</p>
+        ${checks(block, "flags", TRANSITIONS)}
+        ${selectField(block, "execution", "Realización", ["Rodaje", "Postproducción"], "Rodaje o postproducción")}
+        ${noteField(block, "note", "Descripción del efecto", "Cómo debe ejecutarse")}`;
+    }
+    if (block.type === "action") return noteField(block, "text", "Acción", "Qué sucede");
+    if (block.type === "duration") return textField(block, "text", "Duración", "6 segundos");
+    if (block.type === "notes") return noteField(block, "text", "Observaciones", "Notas del plano");
+    return `${textField(block, "name", "Nombre", "Nombre del elemento")}
+      ${textField(block, "category", "Categoría", "Categoría")}
+      ${noteField(block, "text", "Descripción", "Descripción")}
+      ${noteField(block, "note", "Observaciones", "Observaciones")}`;
+  }
+
+  function renderBlock(block) {
+    return `<article class="sb-block${block.collapsed ? " is-collapsed" : ""}" data-block-id="${block.id}">
+      <div class="sb-block-head">
+        <button type="button" class="sb-block-toggle" data-action="toggle-block">
+          <span class="sb-label">${escapeHtml(categoryLabel(block.type))}</span>
+          <span class="sb-block-summary">${escapeHtml(summary(block))}</span>
+        </button>
+        <div class="sb-block-tools">
+          <button type="button" class="sb-icon" data-action="move-block" data-dir="-1" aria-label="Subir">↑</button>
+          <button type="button" class="sb-icon" data-action="move-block" data-dir="1" aria-label="Bajar">↓</button>
+          <button type="button" class="sb-icon" data-action="duplicate-block" aria-label="Duplicar">Dup</button>
+          <button type="button" class="sb-icon" data-action="remove-block" aria-label="Eliminar">×</button>
+        </div>
+      </div>
+      <div class="sb-block-body">${renderBlockBody(block)}</div>
+    </article>`;
+  }
+
+  function renderAdder(shot) {
+    const open = openMenuShotId === shot.id;
+    return `<div class="sb-adder">
+      <button type="button" class="sb-btn" data-action="toggle-adder">+ Agregar elemento</button>
+      ${
+        open
+          ? `<div class="sb-menu">${CATEGORIES.map(
+              (item) =>
+                `<button type="button" data-action="add-block" data-type="${item.id}">${escapeHtml(item.label)}</button>`
+            ).join("")}</div>`
+          : ""
+      }
+    </div>`;
   }
 
   function render() {
@@ -123,6 +679,7 @@
             <h1 class="sb-title">STORYBOARD</h1>
           </div>
           <div class="sb-actions">
+            <p class="sb-status" data-save-status></p>
             <button type="button" class="sb-btn" data-action="add-scene">Agregar Escena</button>
             <button type="button" class="sb-btn ghost" data-action="export">Exportar JSON</button>
             <button type="button" class="sb-btn ghost" data-action="print">Imprimir</button>
@@ -133,9 +690,10 @@
         </div>
       </div>
     `;
+    fitAreas();
   }
 
-  function renderScene(scene, sceneIndex) {
+  function renderScene(scene) {
     return `
       <section class="sb-scene" data-scene="${scene.id}">
         <div class="sb-scene-head">
@@ -154,6 +712,25 @@
         </div>
       </section>
     `;
+  }
+
+  function options(list, selected) {
+    return listWithCurrent(list, selected ? [selected] : [])
+      .map(
+        (item) =>
+          `<option value="${escapeHtml(item)}"${item === selected ? " selected" : ""}>${escapeHtml(item)}</option>`
+      )
+      .join("");
+  }
+
+  function fitArea(area) {
+    if (!area || area.tagName !== "TEXTAREA") return;
+    area.style.height = "auto";
+    area.style.height = `${area.scrollHeight}px`;
+  }
+
+  function fitAreas() {
+    root.querySelectorAll("textarea.sb-area").forEach(fitArea);
   }
 
   function renderShot(shot, shotIndex) {
@@ -185,16 +762,20 @@
         </label>
         <label class="sb-cell sb-cell-action">
           <span class="sb-label">Acción</span>
-          <textarea class="sb-area" data-field="action" placeholder="Qué sucede" rows="3">${escapeHtml(shot.action)}</textarea>
+          <textarea class="sb-area" data-field="action" placeholder="Qué sucede" rows="1">${escapeHtml(shot.action)}</textarea>
         </label>
         <label class="sb-cell sb-cell-audio">
           <span class="sb-label">Audio / Diálogo</span>
-          <textarea class="sb-area" data-field="audio" placeholder="Diálogo / FX" rows="3">${escapeHtml(shot.audio)}</textarea>
+          <textarea class="sb-area" data-field="audio" placeholder="Diálogo / FX" rows="1">${escapeHtml(shot.audio)}</textarea>
         </label>
         <label class="sb-cell sb-cell-notes">
           <span class="sb-label">Notas</span>
-          <textarea class="sb-area" data-field="notes" placeholder="Notas" rows="3">${escapeHtml(shot.notes)}</textarea>
+          <textarea class="sb-area" data-field="notes" placeholder="Notas" rows="1">${escapeHtml(shot.notes)}</textarea>
         </label>
+        <div class="sb-blocks">
+          ${shot.blocks.map(renderBlock).join("")}
+          ${renderAdder(shot)}
+        </div>
       </article>
     `;
   }
@@ -210,9 +791,72 @@
     return scene?.shots.find((shot) => shot.id === row?.dataset.shot);
   }
 
+  function blockFromEl(el) {
+    const shot = shotFromEl(el);
+    const id = el.dataset.block || el.closest("[data-block-id]")?.dataset.blockId;
+    return shot?.blocks.find((block) => block.id === id);
+  }
+
+  function fileToImage(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type.startsWith("image/")) {
+        reject(new Error("invalid"));
+        return;
+      }
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const max = 720;
+        const scale = Math.min(1, max / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("image"));
+      };
+      img.src = url;
+    });
+  }
+
+  function applyControl(el, fromChange) {
+    const block = blockFromEl(el);
+    const key = el.dataset.key;
+    if (!block || !key) return false;
+    if ((el.type === "checkbox" || el.tagName === "SELECT") && !fromChange) return false;
+    if (el.type === "checkbox") {
+      const value = el.dataset.value;
+      const list = Array.isArray(block[key]) ? block[key].slice() : [];
+      block[key] = el.checked ? list.concat(value) : list.filter((item) => item !== value);
+    } else if (el.tagName === "SELECT" && key === "values") {
+      block.values = el.value ? [el.value] : [];
+    } else {
+      block[key] = el.value;
+    }
+    const card = el.closest("[data-block-id]");
+    const sum = card?.querySelector(".sb-block-summary");
+    if (sum) sum.textContent = summary(block);
+    save();
+    return true;
+  }
+
   root.addEventListener("click", (event) => {
     const button = event.target.closest("[data-action]");
-    if (!button) return;
+    if (!button) {
+      if (
+        openMenuShotId &&
+        !event.target.closest(".sb-adder") &&
+        !event.target.closest("input, textarea, select, label")
+      ) {
+        openMenuShotId = null;
+        render();
+      }
+      return;
+    }
     const action = button.dataset.action;
 
     if (action === "add-scene") {
@@ -231,7 +875,44 @@
       const shot = shotFromEl(button);
       if (!scene || !shot) return;
       scene.shots = scene.shots.filter((item) => item.id !== shot.id);
+    } else if (action === "toggle-adder") {
+      const shot = shotFromEl(button);
+      if (!shot) return;
+      openMenuShotId = openMenuShotId === shot.id ? null : shot.id;
+    } else if (action === "add-block") {
+      const shot = shotFromEl(button);
+      const type = button.dataset.type;
+      if (!shot || !CATEGORIES.some((item) => item.id === type)) return;
+      shot.blocks.push(createBlock(type));
+      openMenuShotId = null;
+    } else if (action === "remove-block") {
+      const shot = shotFromEl(button);
+      const block = blockFromEl(button);
+      if (!shot || !block) return;
+      shot.blocks = shot.blocks.filter((item) => item.id !== block.id);
+    } else if (action === "duplicate-block") {
+      const shot = shotFromEl(button);
+      const block = blockFromEl(button);
+      if (!shot || !block) return;
+      const copy = ensureBlock(JSON.parse(JSON.stringify(block)));
+      copy.id = uid();
+      const index = shot.blocks.findIndex((item) => item.id === block.id);
+      shot.blocks.splice(index + 1, 0, copy);
+    } else if (action === "move-block") {
+      const shot = shotFromEl(button);
+      const block = blockFromEl(button);
+      if (!shot || !block) return;
+      const index = shot.blocks.findIndex((item) => item.id === block.id);
+      const next = index + Number(button.dataset.dir || 0);
+      if (next < 0 || next >= shot.blocks.length) return;
+      const [item] = shot.blocks.splice(index, 1);
+      shot.blocks.splice(next, 0, item);
+    } else if (action === "toggle-block") {
+      const block = blockFromEl(button);
+      if (!block) return;
+      block.collapsed = !block.collapsed;
     } else if (action === "export") {
+      state.scenes.forEach((scene) => scene.shots.forEach(mirrorLegacy));
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -246,39 +927,47 @@
       return;
     }
 
-    save();
+    if (action !== "toggle-adder") save();
     render();
   });
 
   root.addEventListener("input", (event) => {
     const field = event.target.dataset.field;
-    if (!field || field === "image") return;
-
     if (field === "title") {
       const scene = sceneFromEl(event.target);
       if (scene) scene.title = event.target.value;
       save();
       return;
     }
-
-    const shot = shotFromEl(event.target);
-    if (!shot) return;
-    shot[field] = event.target.value;
-    save();
+    if (field && field !== "image") {
+      const shot = shotFromEl(event.target);
+      if (shot && Object.prototype.hasOwnProperty.call(shot, field) && field !== "blocks") {
+        shot[field] = event.target.value;
+        if (event.target.tagName === "TEXTAREA") fitArea(event.target);
+        save();
+        return;
+      }
+    }
+    if (applyControl(event.target)) {
+      if (event.target.tagName === "TEXTAREA") fitArea(event.target);
+    }
   });
 
   root.addEventListener("change", async (event) => {
-    if (event.target.dataset.field !== "image") return;
-    const shot = shotFromEl(event.target);
-    const file = event.target.files?.[0];
-    if (!shot || !file) return;
-    try {
-      shot.image = await fileToImage(file);
-      save();
-      render();
-    } catch {
-      alert("No se pudo cargar la imagen.");
+    if (event.target.dataset.field === "image") {
+      const shot = shotFromEl(event.target);
+      const file = event.target.files?.[0];
+      if (!shot || !file) return;
+      try {
+        shot.image = await fileToImage(file);
+        save();
+        render();
+      } catch {
+        alert("No se pudo cargar la imagen.");
+      }
+      return;
     }
+    applyControl(event.target, true);
   });
 
   root.addEventListener("dragover", (event) => {
@@ -311,4 +1000,21 @@
   });
 
   render();
+
+  pullRemote().then((remote) => {
+    if (remote.unavailable) {
+      remoteEnabled = false;
+      return;
+    }
+    if (remote.document?.scenes && !dirty) {
+      const next = normalizeDocument(remote.document);
+      if (next.scenes.length) {
+        state.scenes = next.scenes;
+        persistLocal();
+        render();
+      }
+      return;
+    }
+    if (!remote.document && state.scenes.length) pushRemote();
+  });
 })();
