@@ -97,4 +97,19 @@ describe("storyboard document", () => {
     assert.equal(shot.frame, "Plano Medio Corto (PMC)");
     assert.equal(shot.audio, "Diálogo — Susurro");
   });
+
+  it("reorders shots inside a scene and moves one to another scene", () => {
+    const document = {
+      scenes: [
+        { id: "scene-1", shots: [{ id: "a" }, { id: "b" }, { id: "c" }] },
+        { id: "scene-2", shots: [{ id: "d" }] },
+      ],
+    };
+    assert.equal(model.reorderShot(document, "a", "scene-1", 3), true);
+    assert.deepEqual(document.scenes[0].shots.map((shot) => shot.id), ["b", "c", "a"]);
+    assert.equal(model.reorderShot(document, "a", "scene-1", 3), false);
+    assert.equal(model.reorderShot(document, "c", "scene-2", 0), true);
+    assert.deepEqual(document.scenes[0].shots.map((shot) => shot.id), ["b", "a"]);
+    assert.deepEqual(document.scenes[1].shots.map((shot) => shot.id), ["c", "d"]);
+  });
 });

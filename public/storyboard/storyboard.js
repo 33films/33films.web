@@ -422,6 +422,29 @@
     return shot;
   }
 
+  function reorderShot(document, shotId, targetSceneId, targetIndex) {
+    let source = null;
+    let shot = null;
+    let from = -1;
+    for (const scene of document?.scenes || []) {
+      const index = scene.shots.findIndex((item) => item.id === shotId);
+      if (index >= 0) {
+        source = scene;
+        from = index;
+        shot = scene.shots[index];
+        break;
+      }
+    }
+    const target = (document?.scenes || []).find((scene) => scene.id === targetSceneId);
+    if (!source || !shot || !target) return false;
+    let index = Math.max(0, Math.min(targetIndex, target.shots.length));
+    if (source === target && (index === from || index === from + 1)) return false;
+    source.shots.splice(from, 1);
+    if (source === target && from < index) index -= 1;
+    target.shots.splice(Math.max(0, Math.min(index, target.shots.length)), 0, shot);
+    return true;
+  }
+
   const api = {
     FRAMES,
     ANGLES,
@@ -433,6 +456,7 @@
     createScene,
     normalizeDocument,
     mirrorLegacy,
+    reorderShot,
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -854,7 +878,10 @@
           <input type="file" accept="image/*" data-field="image" />
         </label>
         <div class="sb-shot-meta">
-          <div class="sb-shot-num">Toma ${shotIndex + 1}</div>
+          <div class="sb-shot-id">
+            <button type="button" class="sb-shot-handle" aria-label="Arrastrar toma" title="Arrastrar para ordenar">⋮⋮</button>
+            <div class="sb-shot-num">Toma ${shotIndex + 1}</div>
+          </div>
           <button type="button" class="sb-btn danger" data-action="remove-shot">Eliminar</button>
         </div>
         <label class="sb-cell sb-cell-frame sb-choice">
@@ -1090,9 +1117,82 @@
     fitAreas();
   });
 
+  let dragShot = null;
+
+  function clearShotDrop() {
+    root.querySelectorAll(".sb-shot.is-drop-before, .sb-shot.is-drop-after, .sb-shot.is-dragging").forEach((node) => {
+      node.classList.remove("is-drop-before", "is-drop-after", "is-dragging");
+    });
+  }
+
+  function shotRowAt(x, y) {
+    const nodes = document.elementsFromPoint(x, y);
+    for (const node of nodes) {
+      const row = node.closest?.(".sb-shot");
+      if (row && !row.classList.contains("is-dragging")) return row;
+    }
+    return null;
+  }
+
+  root.addEventListener("pointerdown", (event) => {
+    const handle = event.target.closest(".sb-shot-handle");
+    if (!handle || event.button !== 0) return;
+    const row = handle.closest("[data-shot]");
+    const scene = sceneFromEl(handle);
+    const shot = shotFromEl(handle);
+    if (!row || !scene || !shot) return;
+    dragShot = { id: shot.id, sceneId: scene.id, pointerId: event.pointerId, moved: false, x: event.clientX, y: event.clientY };
+    try {
+      handle.setPointerCapture(event.pointerId);
+    } catch {
+      /* The drag still follows pointer events when capture is unavailable. */
+    }
+    event.preventDefault();
+  });
+
+  root.addEventListener("pointermove", (event) => {
+    if (!dragShot || event.pointerId !== dragShot.pointerId) return;
+    if (!dragShot.moved) {
+      const distance = Math.hypot(event.clientX - dragShot.x, event.clientY - dragShot.y);
+      if (distance < 4) return;
+      dragShot.moved = true;
+      root.querySelector(`[data-shot="${dragShot.id}"]`)?.classList.add("is-dragging");
+    }
+    clearShotDrop();
+    root.querySelector(`[data-shot="${dragShot.id}"]`)?.classList.add("is-dragging");
+    const row = shotRowAt(event.clientX, event.clientY);
+    if (!row) return;
+    const rect = row.getBoundingClientRect();
+    row.classList.add(event.clientY > rect.top + rect.height / 2 ? "is-drop-after" : "is-drop-before");
+  });
+
+  function finishShotDrag(event) {
+    if (!dragShot || event.pointerId !== dragShot.pointerId) return;
+    const active = dragShot;
+    const row = active.moved ? shotRowAt(event.clientX, event.clientY) : null;
+    dragShot = null;
+    clearShotDrop();
+    if (!row) return;
+    const targetScene = sceneFromEl(row);
+    if (!targetScene) return;
+    const rect = row.getBoundingClientRect();
+    let index = targetScene.shots.findIndex((shot) => shot.id === row.dataset.shot);
+    if (event.clientY > rect.top + rect.height / 2) index += 1;
+    if (!reorderShot(state, active.id, targetScene.id, index)) return;
+    save();
+    render();
+  }
+
+  root.addEventListener("pointerup", finishShotDrag);
+  root.addEventListener("pointercancel", (event) => {
+    if (!dragShot || event.pointerId !== dragShot.pointerId) return;
+    dragShot = null;
+    clearShotDrop();
+  });
+
   root.addEventListener("dragover", (event) => {
     const zone = event.target.closest(".sb-image");
-    if (!zone) return;
+    if (!zone || ![...event.dataTransfer.types].includes("Files")) return;
     event.preventDefault();
     zone.classList.add("is-over");
   });
